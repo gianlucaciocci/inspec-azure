@@ -32,21 +32,19 @@ class AzureVNet < Inspec.resource(1)
     raise format("Unable to find resource group '%s' in Azure subscription '%s'", opts[:name], helpers.azure.subscription_id) unless helpers.resource_mgmt.exists opts[:name]
 
     # helpers.network_mgmt.
-    @vnet = helpers.network_mgmt.get_virtual_network(opts[:rg_name], opts[:vnet_name])
+    @vnet = helpers.network_mgmt.get_virtual_network(opts[:rg_name], opts[:name])
 
-    raise format("VNet %s not found in Azure subscription %s", opts[:name], helpers.azure.subcription_id) if vnet.nil?
-
+    raise format('VNet %s not found in Azure subscription %s', opts[:name], helpers.azure.subcription_id) if vnet.nil?
   end
-
 
   # Create a FilterTable so that items can be selected
   filter = FilterTable.create
   filter.add_accessor(:where)
-      .add_accessor(:entries)
-      .add_accessor(:count)
-      .add_accessor(:contains)
-      .add(:type, field: 'type')
-      .add(:name, field: 'name')
+        .add_accessor(:entries)
+        .add_accessor(:count)
+        .add_accessor(:contains)
+        .add(:type, field: 'type')
+        .add(:name, field: 'name')
 
   # Determine the location of the resource group
   #
@@ -55,5 +53,4 @@ class AzureVNet < Inspec.resource(1)
   def location
     vnet.location
   end
-
 end

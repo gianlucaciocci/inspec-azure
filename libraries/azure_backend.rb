@@ -55,7 +55,6 @@ class AzureConnection
   def spn
     @subscription_id = azure_subscription_id
 
-
     # Determine the client_id, tenant_id and the client_secret
     tenant_id = ENV['AZURE_TENANT_ID'] || @credentials[subscription_id]['tenant_id']
     client_id = ENV['AZURE_CLIENT_ID'] || @credentials[subscription_id]['client_id']
@@ -235,11 +234,9 @@ class NetworkManagement
   def initialize(azure)
     @client = Azure::ARM::Network::NetworkManagementClient.new(azure.connection)
     client.subscription_id = azure.subscription_id
-
   end
 
   def get_virtual_network(rg_name, vnet_name)
     client.virtual_networks.get(rg_name, vnet_name)
   end
-
 end

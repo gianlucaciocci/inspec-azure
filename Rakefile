@@ -23,6 +23,7 @@ namespace :test do
 
   # Specify the directory for the integration tests
   integration_dir = "test/integration"
+  root_dir = ''
 
   # run inspec check to verify that the profile is properly configured
   #task :check do
@@ -40,19 +41,22 @@ namespace :test do
     admin_password = Passgen::generate(length: 12, uppercase: true, lowercase: true, symbols: true, digits: true)
 
     puts "----> Setup"
+
     # Create the plan that can be applied to Azure
-    cmd = format("cd %s/build/ && terraform plan -var 'subscription_id=%s' -var 'client_id=%s' -var 'client_secret=%s' -var 'tenant_id=%s' -var='storage_account_name=%s' -var='admin_password=%s' -out inspec-azure.plan", integration_dir, creds[:subscription_id], creds[:client_id], creds[:client_secret], creds[:tenant_id], sa_name, admin_password)
+    cmd = format("sh %s/scripts/terraform.sh plan -var 'subscription_id=%s' -var 'client_id=%s' -var 'client_secret=%s' -var 'tenant_id=%s' -var='storage_account_name=%s' -var='admin_password=%s' -out inspec-azure.plan", root_dir, creds[:subscription_id], creds[:client_id], creds[:client_secret], creds[:tenant_id], sa_name, admin_password)
     sh(cmd)
 
     # Apply the plan on Azure
-    cmd = format("cd %s/build/ && terraform apply inspec-azure.plan", integration_dir)
+    # cmd = format("cd %s/build/ && sh %s/scripts/terraform.sh apply inspec-azure.plan", integration_dir, root_dir)
+    cmd = format("sh %s/scripts/terraform.sh apply inspec-azure.plan",root_dir)
+
     sh(cmd)
   end
 
   task :run_integration_tests do
     puts "----> Run"
-    
-    cmd = format("bundle exec inspec exec %s/verify", integration_dir)
+
+    cmd = format("sh %s/scripts/inspec.sh verify", root_dir)
     sh(cmd)
   end
 
@@ -62,13 +66,14 @@ namespace :test do
     creds = azure_backend.spn
 
     puts "----> Cleanup"
-    cmd = format("cd %s/build/ && terraform destroy -force -var 'subscription_id=%s' -var 'client_id=%s' -var 'client_secret=%s' -var 'tenant_id=%s' -var='admin_password=dummy' -var='storage_account_name=dummy'", integration_dir, creds[:subscription_id], creds[:client_id], creds[:client_secret], creds[:tenant_id])
+    cmd = format("sh %s/scripts/terraform.sh destroy -force -var 'subscription_id=%s' -var 'client_id=%s' -var 'client_secret=%s' -var 'tenant_id=%s' -var='admin_password=dummy' -var='storage_account_name=dummy'", root_dir, creds[:subscription_id], creds[:client_id], creds[:client_secret], creds[:tenant_id])
     sh(cmd)
 
   end
 
   desc "Perform Integration Tests"
   task :integration do
+    root_dir = Dir.getwd
     Rake::Task["test:cleanup_integration_tests"].execute
     Rake::Task["test:setup_integration_tests"].execute
     Rake::Task["test:run_integration_tests"].execute

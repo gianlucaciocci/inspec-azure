@@ -1,4 +1,9 @@
+---
 name: inspec-azure-integration-tests
+version: 0.1.0
+supports:
+  - platform: azure
 depends:
   - name: azure
     path: ../../../
+
